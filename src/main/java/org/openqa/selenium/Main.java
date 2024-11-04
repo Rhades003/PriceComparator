@@ -12,6 +12,6 @@ import java.util.concurrent.ExecutionException;
 public class Main {
     public static void main(String[] args) throws TransformerException, IOException, InterruptedException, ExecutionException {
         Scraper scraper = new Scraper();
-        scraper.getCardStats("Wrath of God");
+        scraper.getCardStats("Kaito, Fin de las Pesadillas");
             }
         }

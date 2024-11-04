@@ -42,6 +42,7 @@ public class Scraper {
         public void getCardStats(String name) throws InterruptedException, ExecutionException {
 
         String nameModified = name.replaceAll(" ", "-");
+        nameModified = nameModified.replaceAll(",", "");
         String driverPath = "src\\main\\resources\\geckodriver.exe";
         System.setProperty("webdriver.gecko.driver", driverPath);
         WebDriver driver =  new FirefoxDriver();
@@ -152,27 +153,46 @@ public class Scraper {
         //este método pulsa unas 4 veces el botón de cargar más para obtener resultados de sobra para comparar
         public void loadAllCards(WebDriverWait wait, WebDriver driver) throws InterruptedException{
             WebElement loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
+            try {
+                 // Intenta hacer clic usando JavaScript
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
+                loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
+                sleep(1000);
+            } catch (Exception e) {
+                // TODO: handle exception
+            }
+            
+            try {
+                // Intenta hacer clic usando JavaScript
+               ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
+               ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
+               loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
+               sleep(1000);
+            } catch (Exception e) {
+               // TODO: handle exception
+            }
 
-            // Intenta hacer clic usando JavaScript
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
-            loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
-            sleep(1000);
+            try {
+                // Intenta hacer clic usando JavaScript
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
+                loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
+                sleep(1000);
+            } catch (Exception e) {
+            // TODO: handle exception
+            }
 
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
-            loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
-            sleep(1000);
+            try {
+                // Intenta hacer clic usando JavaScript
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
+                loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
+                sleep(1000);
+            } catch (Exception e) {
+            // TODO: handle exception
+            }
 
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
-            loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
-            sleep(1000);
-
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
-            loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
-            sleep(1000);
             
         }
 
