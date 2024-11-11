@@ -1,31 +1,15 @@
 package org.openqa.selenium.controllers;
 
-import com.opencsv.*;
-import org.w3c.dom.*;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -69,8 +53,8 @@ public class Scraper {
         List<String> prices = pricesFuture.get();
         List<String> expansions = expansionsFuture.get();
 
-           mountOutput(sellers, prices, expansions);
-        
+           mountOutput(sellers, prices, expansions, name);
+            driver.close();
         }
 
 
@@ -152,7 +136,13 @@ public class Scraper {
 
         //este método pulsa unas 4 veces el botón de cargar más para obtener resultados de sobra para comparar
         public void loadAllCards(WebDriverWait wait, WebDriver driver) throws InterruptedException{
-            WebElement loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
+            WebElement loadMoreButton = null;
+            try {
+                loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
+            } catch (Exception e) {
+                // TODO: handle exception
+            }
+            
             try {
                  // Intenta hacer clic usando JavaScript
                 ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
@@ -196,7 +186,8 @@ public class Scraper {
             
         }
 
-        public void mountOutput(List<String> sellerFilterList, List<String> priceFilterList, List<String> expansionFilterList){
+        public void mountOutput(List<String> sellerFilterList, List<String> priceFilterList, List<String> expansionFilterList, String name){
+            System.out.println(name);
             for(int i =0; i<sellerFilterList.size();i++){
                 switch (sellerFilterList.get(i)) {
                     case "Levodin":
@@ -212,10 +203,10 @@ public class Scraper {
                         break;
                     
                     case "inGenio":
-                    System.out.println("Vendedor: "+ ORANGE+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
+                        System.out.println("Vendedor: "+ ORANGE+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
                         break;
 
-                    case "MagicBarcelona":
+                    case "MagicBarcelona":    
                         System.out.println("Vendedor: "+ GREEN+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
                         break;
 
@@ -230,11 +221,15 @@ public class Scraper {
                     case "TesoroDragon":
                         System.out.println("Vendedor: "+ CYAN+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
                         break;
+                    case "Lallanuratcg":
+                        System.out.println("Vendedor: "+ CYAN+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
+                        break;
 
                     default:
                         break;
                 }
             }
+            System.out.println();
         }
 
 
