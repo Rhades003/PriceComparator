@@ -10,9 +10,13 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import static java.lang.Thread.sleep;
 import static org.openqa.selenium.Extras.Color.*;
@@ -39,7 +43,7 @@ public class Scraper {
     
             // Obtener todos los sellerList con la clase especificada
             
-           CompletableFuture<List<String>> sellersFuture = CompletableFuture.supplyAsync(() -> getAllsellers(wait, driver));
+        CompletableFuture<List<String>> sellersFuture = CompletableFuture.supplyAsync(() -> getAllsellers(wait, driver));
         CompletableFuture<List<String>> pricesFuture = CompletableFuture.supplyAsync(() -> getAllPrices(wait, driver));
         CompletableFuture<List<String>> expansionsFuture = CompletableFuture.supplyAsync(() -> getAllexpansions(wait));
 
@@ -148,7 +152,7 @@ public class Scraper {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
                 loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
-                sleep(1000);
+                sleep(8000);
             } catch (Exception e) {
                 // TODO: handle exception
             }
@@ -158,34 +162,99 @@ public class Scraper {
                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
                loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
-               sleep(1000);
+               sleep(8000);
             } catch (Exception e) {
                // TODO: handle exception
             }
 
-            try {
-                // Intenta hacer clic usando JavaScript
-                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
-                loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
-                sleep(1000);
-            } catch (Exception e) {
-            // TODO: handle exception
-            }
-
-            try {
-                // Intenta hacer clic usando JavaScript
-                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
-                loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
-                sleep(1000);
-            } catch (Exception e) {
-            // TODO: handle exception
-            }
-
             
         }
+        public void getDeckStats() throws FileNotFoundException, IOException{
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("Archivos TXT (*.txt)", "txt");
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(filter);
+            String driverPath = "src\\main\\resources\\geckodriver.exe";
+            System.setProperty("webdriver.gecko.driver", driverPath);
+            WebDriver driver =  new FirefoxDriver();
+            WebElement divPrice, expansion = null, price = null;
+            File deck = null;
+            String lineModified = null, expansionText, priceText, sellerText;
+            Boolean encontrado = false;
+            List <String> deckList = new ArrayList<>();
 
+            int result = fileChooser.showOpenDialog(null);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                // Obtener el archivo seleccionado
+                deck = fileChooser.getSelectedFile();
+                System.out.println("Archivo seleccionado: " + deck.getName());
+            } else {
+                System.out.println("No se seleccionó ningún archivo.");
+                return;
+            }
+
+            String line = "";
+            try (BufferedReader br = new BufferedReader(new FileReader(deck))) {
+                while ((line = br.readLine()) != null) {
+                    lineModified = line.replaceAll(" ", "-");
+                    lineModified = lineModified.replaceAll(",", "");
+                    driver.get("https://www.cardmarket.com/en/Magic/Cards/"+lineModified+"?sellerCountry=10&sellerType=1,2&language=1,4");
+                    WebDriverWait wait = new WebDriverWait(driver, 2);
+                    expansionText = "";
+                    sellerText = "";
+                    priceText = "";
+                    encontrado = false;
+                    loadAllCards(wait, driver);
+                    List<WebElement> sellers = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector("span.d-flex.has-content-centered.me-1")));
+
+                    int index = 0;
+
+                    while (index <sellers.size())  {
+
+
+                        // Verificar si el href es uno de los valores deseados
+                        if (sellers.get(index).getText() != null && (
+                                sellers.get(index).getText().contains("Levodin") ||
+                                        sellers.get(index).getText().contains("Devian-Magic-Cards") ||
+                                        sellers.get(index).getText().contains("Magic-Industria-61") ||
+                                        sellers.get(index).getText().contains("Lallanuratcg") ||
+                                        sellers.get(index).getText().contains("inGenio") ||
+                                        sellers.get(index).getText().contains("MagicBarcelona") ||
+                                        sellers.get(index).getText().contains("infinitiworld") ||
+                                        sellers.get(index).getText().contains("PhyrexianMTG") ||
+                                        sellers.get(index).getText().contains("TesoroDragon"))){
+                            encontrado = true;
+                            break;
+                        }
+                        //System.out.println(sellers.get(index).getText());
+                        index++;
+                        System.out.println(index);
+
+                    }
+                    if(encontrado) {
+                        WebElement divExpansion = driver.findElement(By.cssSelector(".row.g-0.article-row:nth-of-type(" + ((index/3)+1) + ")"));
+                        expansion = divExpansion.findElement(By.cssSelector(".expansion-symbol.is-magic.icon.is-24x24.d-flex.me-1"));
+                        expansionText = expansion.getAttribute("data-bs-original-title");
+                        divPrice = divExpansion.findElement(By.cssSelector(".col-offer.col-auto"));
+                        price = divPrice.findElement(By.cssSelector(".color-primary.small.text-end.text-nowrap.fw-bold"));
+                        priceText = price.getText().replaceAll(" ","");
+                        sellerText = sellers.get((index)).getText();
+                        //System.out.println(index+" seller "+sellerText);
+                    }
+                    deckList.add(lineModified+" "+expansionText+" "+sellerText+" "+priceText);
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            File finalDeck = new File("src\\main\\"+deck.getName());
+            FileWriter fw = new FileWriter(finalDeck);
+            BufferedWriter escritura = new BufferedWriter(fw);
+            for(String card: deckList){
+                escritura.write(card);
+                escritura.newLine();
+            }
+            driver.close();
+
+        }
         public void mountOutput(List<String> sellerFilterList, List<String> priceFilterList, List<String> expansionFilterList, String name){
             System.out.println(name);
             for(int i =0; i<sellerFilterList.size();i++){
@@ -193,13 +262,17 @@ public class Scraper {
                     case "Levodin":
                         System.out.println("Vendedor: " + PURPLE+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
                         break;
+
+                    case "Devian-Magic-Cards":
+                        System.out.println("Vendedor: "+ BLUE+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
+                        break;
                     
                     case "Magic-Industria-61":
                         System.out.println("Vendedor: "+ YELLOW+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
                         break;
-
-                    case "Devian-Magic-Cards":
-                        System.out.println("Vendedor: "+ BLUE+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
+                        
+                    case "Lallanuratcg":
+                        System.out.println("Vendedor: "+ CYAN+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
                         break;
                     
                     case "inGenio":
@@ -221,9 +294,7 @@ public class Scraper {
                     case "TesoroDragon":
                         System.out.println("Vendedor: "+ CYAN+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
                         break;
-                    case "Lallanuratcg":
-                        System.out.println("Vendedor: "+ CYAN+sellerFilterList.get(i)+RESET +" Precio: "+priceFilterList.get(i)+" Expansión: "+expansionFilterList.get(i));
-                        break;
+                    
 
                     default:
                         break;

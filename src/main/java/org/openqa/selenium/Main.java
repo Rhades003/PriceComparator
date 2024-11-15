@@ -13,6 +13,7 @@ public class Main {
         //scraper.getCardStats("Kaito Shizuki");
         //scraper.getCardStats("Kaito, Bane of Nightmares");
         //scraper.getCardStats("Kaito, Dancing Shadow"); 
-        scraper.getCardStats("Command Beacon");
+        //scraper.getCardStats("Talisman del progreso");
+        scraper.getDeckStats();
             }
         }
