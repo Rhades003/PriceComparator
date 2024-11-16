@@ -183,17 +183,7 @@ public class Scraper {
             fileChooser.setFileFilter(filter);
             String driverPath = "src\\main\\resources\\geckodriver.exe";
             System.setProperty("webdriver.gecko.driver", driverPath);
-            FirefoxOptions options = new FirefoxOptions();
-            // Configurar LoggingPreferences para ignorar los logs del navegador
-            LoggingPreferences logs = new LoggingPreferences();
-            logs.enable(LogType.BROWSER, Level.OFF); // Ignorar todos los logs del navegador
-            Logger seleniumLogger = Logger.getLogger("org.openqa.selenium");
-            seleniumLogger.setLevel(Level.OFF);
-            options.setCapability("goog:loggingPrefs", logs);
-            logs.enable(LogType.BROWSER, Level.SEVERE); // Solo mostrar errores críticos
-            logs.enable(LogType.DRIVER, Level.OFF);     // Silenciar logs del WebDriver
-            options.setCapability("goog:loggingPrefs", logs);
-            WebDriver driver =  new FirefoxDriver(options);
+            WebDriver driver =  new FirefoxDriver();
             WebElement divPrice, expansion = null, price = null;
             File deck = null;
             String lineModified = null, expansionText, priceText, sellerText;
@@ -218,6 +208,7 @@ public class Scraper {
                     lineModified = lineModified.replaceAll(",", "");
                     lineModified = lineModified.replaceAll("'","");
                     lineModified = lineModified.replaceAll("/","-");
+                    lineModified = lineModified.replaceAll("1","");
                     driver.get("https://www.cardmarket.com/en/Magic/Cards/"+lineModified+"?sellerCountry=10&sellerType=1,2&language=1,4");
                     WebDriverWait wait = new WebDriverWait(driver, 2);
                     expansionText = "";
@@ -248,6 +239,7 @@ public class Scraper {
                                         sellers.get(index).getText().contains("MagicBarcelona") ||
                                         sellers.get(index).getText().contains("infinitiworld") ||
                                         sellers.get(index).getText().contains("PhyrexianMTG") ||
+                                        sellers.get(index).getText().contains("nangico") ||
                                         sellers.get(index).getText().contains("TesoroDragon"))){
                             encontrado = true;
                             break;
@@ -279,7 +271,7 @@ public class Scraper {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            File finalDeck = new File("mazos\\"+"Modified"+deck.getName());
+            File finalDeck = new File("mazos\\"+"modified_"+deck.getName());
             FileWriter fw = new FileWriter(finalDeck);
             BufferedWriter escritura = new BufferedWriter(fw);
             for(String card: deckList){
