@@ -21,6 +21,12 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import static java.lang.Thread.sleep;
 import static org.openqa.selenium.Extras.Color.*;
 
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * La clase Scraper es donde ocurre toda la magia, aqui estan escritos los metodos que se utilizan en este proyecto
@@ -169,18 +175,31 @@ public class Scraper {
 
             
         }
+
+
         public void getDeckStats() throws FileNotFoundException, IOException{
             FileNameExtensionFilter filter = new FileNameExtensionFilter("Archivos TXT (*.txt)", "txt");
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileFilter(filter);
             String driverPath = "src\\main\\resources\\geckodriver.exe";
             System.setProperty("webdriver.gecko.driver", driverPath);
-            WebDriver driver =  new FirefoxDriver();
+            FirefoxOptions options = new FirefoxOptions();
+            // Configurar LoggingPreferences para ignorar los logs del navegador
+            LoggingPreferences logs = new LoggingPreferences();
+            logs.enable(LogType.BROWSER, Level.OFF); // Ignorar todos los logs del navegador
+            Logger seleniumLogger = Logger.getLogger("org.openqa.selenium");
+            seleniumLogger.setLevel(Level.OFF);
+            options.setCapability("goog:loggingPrefs", logs);
+            logs.enable(LogType.BROWSER, Level.SEVERE); // Solo mostrar errores críticos
+            logs.enable(LogType.DRIVER, Level.OFF);     // Silenciar logs del WebDriver
+            options.setCapability("goog:loggingPrefs", logs);
+            WebDriver driver =  new FirefoxDriver(options);
             WebElement divPrice, expansion = null, price = null;
             File deck = null;
             String lineModified = null, expansionText, priceText, sellerText;
             Boolean encontrado = false;
             List <String> deckList = new ArrayList<>();
+            float totalPrice = 0f;
 
             int result = fileChooser.showOpenDialog(null);
             if (result == JFileChooser.APPROVE_OPTION) {
@@ -197,14 +216,22 @@ public class Scraper {
                 while ((line = br.readLine()) != null) {
                     lineModified = line.replaceAll(" ", "-");
                     lineModified = lineModified.replaceAll(",", "");
+                    lineModified = lineModified.replaceAll("'","");
+                    lineModified = lineModified.replaceAll("/","-");
                     driver.get("https://www.cardmarket.com/en/Magic/Cards/"+lineModified+"?sellerCountry=10&sellerType=1,2&language=1,4");
                     WebDriverWait wait = new WebDriverWait(driver, 2);
                     expansionText = "";
                     sellerText = "";
                     priceText = "";
+                    String priceCount = "";
                     encontrado = false;
                     loadAllCards(wait, driver);
-                    List<WebElement> sellers = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector("span.d-flex.has-content-centered.me-1")));
+                    List<WebElement> sellers = null;
+                    try {
+                       sellers = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector("span.d-flex.has-content-centered.me-1")));
+                    }catch (Exception e){
+
+                    }
 
                     int index = 0;
 
@@ -227,7 +254,6 @@ public class Scraper {
                         }
                         //System.out.println(sellers.get(index).getText());
                         index++;
-                        System.out.println(index);
 
                     }
                     if(encontrado) {
@@ -240,18 +266,30 @@ public class Scraper {
                         sellerText = sellers.get((index)).getText();
                         //System.out.println(index+" seller "+sellerText);
                     }
+                    try {
+
+                        priceCount = priceText.substring(0, priceText.length() - 1).replaceAll(",", ".");
+                        totalPrice += Float.parseFloat(priceCount);
+                        System.out.println( line+" "+priceText.substring(0, priceText.length() - 1));
+                    }catch (Exception e){}
+
+                    System.out.println("total price "+totalPrice);
                     deckList.add(lineModified+" "+expansionText+" "+sellerText+" "+priceText);
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            File finalDeck = new File("src\\main\\"+deck.getName());
+            File finalDeck = new File("mazos\\"+"Modified"+deck.getName());
             FileWriter fw = new FileWriter(finalDeck);
             BufferedWriter escritura = new BufferedWriter(fw);
             for(String card: deckList){
+                System.out.println(card);
                 escritura.write(card);
                 escritura.newLine();
             }
+            escritura.write("Precio Total: "+totalPrice);
+            escritura.flush();
+            escritura.close();
             driver.close();
 
         }
