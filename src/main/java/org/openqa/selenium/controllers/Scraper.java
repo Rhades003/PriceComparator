@@ -158,7 +158,7 @@ public class Scraper {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", loadMoreButton);
                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loadMoreButton);
                 loadMoreButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loadMoreButton")));
-                sleep(8000);
+                sleep(9000);
             } catch (Exception e) {
                 // TODO: handle exception
             }
@@ -217,7 +217,7 @@ public class Scraper {
                     String priceCount = "";
                     encontrado = false;
                     loadAllCards(wait, driver);
-                    List<WebElement> sellers = null;
+                    List<WebElement> sellers =  new ArrayList<>();
                     try {
                        sellers = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector("span.d-flex.has-content-centered.me-1")));
                     }catch (Exception e){
@@ -226,7 +226,7 @@ public class Scraper {
 
                     int index = 0;
 
-                    while (index <sellers.size())  {
+                    while (index <sellers.size() && sellers!= null)  {
 
 
                         // Verificar si el href es uno de los valores deseados
@@ -237,7 +237,6 @@ public class Scraper {
                                         sellers.get(index).getText().contains("Lallanuratcg") ||
                                         sellers.get(index).getText().contains("inGenio") ||
                                         sellers.get(index).getText().contains("MagicBarcelona") ||
-                                        sellers.get(index).getText().contains("infinitiworld") ||
                                         sellers.get(index).getText().contains("PhyrexianMTG") ||
                                         sellers.get(index).getText().contains("nangico") ||
                                         sellers.get(index).getText().contains("TesoroDragon"))){
